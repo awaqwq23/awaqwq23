@@ -79,7 +79,7 @@
 ## Coding Profile
 
 <p align="center">
-  <img src="./assets/language-stats.svg" alt="GitHub 公开项目中使用最多的十种语言" />
+  <img src="./assets/language-stats.svg" alt="我有权访问的 GitHub 仓库（包括私有协作仓库）的语言占比" />
 </p>
 
 ## 项目

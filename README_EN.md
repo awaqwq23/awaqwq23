@@ -79,7 +79,7 @@ I'm **awaqwq233** on most platforms, meow.
 ## Coding Profile
 
 <p align="center">
-  <img src="./assets/language-stats.svg" alt="Top ten languages across my public GitHub projects" />
+  <img src="./assets/language-stats.svg" alt="Language share across GitHub repositories I can access, including private collaborations" />
 </p>
 
 ## Projects

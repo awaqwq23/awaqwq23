@@ -21,8 +21,11 @@ jobs:
       - name: Generate language chart
         run: node scripts/update-language-chart.mjs
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # A user token is required because the automatic GITHUB_TOKEN can
+          # only access this workflow's repository.
+          LANGUAGE_STATS_TOKEN: ${{ secrets.LANGUAGE_STATS_TOKEN }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
+          REQUIRE_AUTHENTICATED_REPOS: "true"
 
       - name: Commit updated chart
         run: |

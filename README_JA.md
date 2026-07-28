@@ -79,7 +79,7 @@
 ## Coding Profile
 
 <p align="center">
-  <img src="./assets/language-stats.svg" alt="GitHubの公開プロジェクトで最も使用されている10言語" />
+  <img src="./assets/language-stats.svg" alt="非公開の共同リポジトリを含む、アクセス可能なGitHubリポジトリの言語割合" />
 </p>
 
 ## プロジェクト
