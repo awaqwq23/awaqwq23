@@ -22,7 +22,7 @@ jobs:
         run: node scripts/update-language-chart.mjs
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_USERNAME: xiaoben520
+          GITHUB_USERNAME: ${{ github.repository_owner }}
 
       - name: Commit updated chart
         run: |

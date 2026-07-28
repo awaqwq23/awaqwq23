@@ -4,9 +4,13 @@
 // 适用于 CI 环境（使用自动注入的 GITHUB_TOKEN）
 import { mkdir, writeFile } from "node:fs/promises";
 
-const username = process.env.GITHUB_USERNAME || process.env.GITHUB_REPOSITORY_OWNER || "xiaoben520";
+const username = process.env.GITHUB_USERNAME || process.env.GITHUB_REPOSITORY_OWNER;
 const token = process.env.GITHUB_TOKEN;
 const outputPath = "assets/language-stats.svg";
+
+if (!username) {
+  throw new Error("Set GITHUB_USERNAME or GITHUB_REPOSITORY_OWNER before generating the language chart.");
+}
 
 // 语言配色（贴近 GitHub Linguist）
 const colors = {
