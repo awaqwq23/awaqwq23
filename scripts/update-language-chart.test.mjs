@@ -1,7 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { discoverAllRepos, renderChart } from "./update-language-chart.mjs";
+import {
+  collectAuthoredLanguageStats,
+  collapseEntries,
+  discoverAllRepos,
+  languageForPath,
+  renderChart,
+} from "./update-language-chart.mjs";
 
 test("unions accessible and historically contributed repositories", async () => {
   const requestedPaths = [];
@@ -85,29 +91,85 @@ test("refuses a public-only fallback when authenticated statistics are required"
   );
 });
 
-test("expands the SVG so every language legend remains inside the view box", () => {
-  const entries = Array.from({ length: 15 }, (_, index) => ({
-    name: `Language-${index + 1}`,
-    bytes: 1000 - index,
-  }));
-
-  const svg = renderChart(entries, 9, "example-user");
-
-  assert.match(svg, /viewBox="0 0 1000 320"/);
-  assert.equal((svg.match(/class="language"/g) || []).length, 15);
-  assert.match(svg, /including private repositories permitted by the token/);
-  assert.match(svg, />9 repositories</);
+test("maps source filenames to languages and ignores generated dependency paths", () => {
+  assert.equal(languageForPath("src/server.ts"), "TypeScript");
+  assert.equal(languageForPath("native/widget.cpp"), "C++");
+  assert.equal(languageForPath("Dockerfile.dev"), "Dockerfile");
+  assert.equal(languageForPath("CMakeLists.txt"), "CMake");
+  assert.equal(languageForPath("vendor/copied.js"), null);
+  assert.equal(languageForPath("README.md"), null);
 });
 
-test("caps wide legends at four columns and grows the chart vertically", () => {
-  const entries = Array.from({ length: 66 }, (_, index) => ({
+test("counts only authored non-merge additions and deduplicates commits across forks", async () => {
+  const requestedPaths = [];
+  const commitsByRepo = {
+    "owner/fork": [
+      { sha: "authored", parents: [{ sha: "parent" }] },
+      { sha: "merge", parents: [{ sha: "one" }, { sha: "two" }] },
+    ],
+    "upstream/project": [
+      { sha: "authored", parents: [{ sha: "parent" }] },
+    ],
+    "owner/unmodified-fork": [],
+  };
+  const request = async (path) => {
+    requestedPaths.push(path);
+    const listMatch = path.match(/^\/repos\/([^?]+)\/commits\?author=/);
+    if (listMatch) return commitsByRepo[listMatch[1]] || [];
+    if (path.startsWith("/repos/owner/fork/commits/authored?")) {
+      return {
+        files: [
+          { filename: "src/app.js", additions: 12 },
+          { filename: "native/main.cpp", additions: 5 },
+          { filename: "README.md", additions: 50 },
+          { filename: "src/removed.py", additions: 0 },
+        ],
+      };
+    }
+    throw new Error(`Unexpected request: ${path}`);
+  };
+
+  const result = await collectAuthoredLanguageStats(
+    [
+      { full_name: "owner/fork", fork: true },
+      { full_name: "upstream/project", fork: false },
+      { full_name: "owner/unmodified-fork", fork: true },
+    ],
+    "example-user",
+    { request },
+  );
+
+  assert.deepEqual(result.entries, [
+    { name: "JavaScript", lines: 12 },
+    { name: "C++", lines: 5 },
+  ]);
+  assert.equal(result.repoCount, 1);
+  assert.equal(result.commitCount, 1);
+  assert.equal(
+    requestedPaths.filter((path) => path.includes("/commits/authored?")).length,
+    1,
+  );
+  assert.equal(requestedPaths.some((path) => path.includes("/commits/merge?")), false);
+});
+
+test("shows the top 14 languages plus Other in a fixed three-by-five legend", () => {
+  const entries = Array.from({ length: 18 }, (_, index) => ({
     name: `Language-${index + 1}`,
-    bytes: 1000 - index,
+    lines: 1000 - index,
   }));
 
-  const svg = renderChart(entries, 17, "example-user");
+  const collapsed = collapseEntries(entries);
+  const svg = renderChart(entries, 9, "example-user");
 
-  assert.match(svg, /viewBox="0 0 1220 673"/);
-  assert.doesNotMatch(svg, /width="2540"/);
-  assert.equal((svg.match(/class="language"/g) || []).length, 66);
+  assert.equal(collapsed.length, 15);
+  assert.equal(collapsed.at(-1).name, "Other");
+  assert.match(svg, /viewBox="0 0 1000 320"/);
+  assert.equal((svg.match(/class="language"/g) || []).length, 15);
+  assert.equal((svg.match(/translate\(345 /g) || []).length, 5);
+  assert.equal((svg.match(/translate\(565 /g) || []).length, 5);
+  assert.equal((svg.match(/translate\(785 /g) || []).length, 5);
+  assert.match(svg, />Other</);
+  assert.doesNotMatch(svg, />Language-15</);
+  assert.match(svg, /Forks contribute only changes authored by this account/);
+  assert.match(svg, />9 repositories</);
 });

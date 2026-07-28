@@ -79,7 +79,7 @@
 ## Coding Profile
 
 <p align="center">
-  <img src="./assets/language-stats.svg" alt="我有权访问的 GitHub 仓库（包括私有协作仓库）的语言占比" />
+  <img src="./assets/language-stats.svg" alt="我在 GitHub 仓库（包括有权访问的私有仓库）中本人新增和修改代码的语言占比" />
 </p>
 
 ## 项目
