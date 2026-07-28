@@ -98,3 +98,16 @@ test("expands the SVG so every language legend remains inside the view box", () 
   assert.match(svg, /including private repositories permitted by the token/);
   assert.match(svg, />9 repositories</);
 });
+
+test("caps wide legends at four columns and grows the chart vertically", () => {
+  const entries = Array.from({ length: 66 }, (_, index) => ({
+    name: `Language-${index + 1}`,
+    bytes: 1000 - index,
+  }));
+
+  const svg = renderChart(entries, 17, "example-user");
+
+  assert.match(svg, /viewBox="0 0 1220 673"/);
+  assert.doesNotMatch(svg, /width="2540"/);
+  assert.equal((svg.match(/class="language"/g) || []).length, 66);
+});

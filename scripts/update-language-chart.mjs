@@ -241,9 +241,11 @@ export function renderChart(entries, repoCount, username) {
   const radius = 95;
   const strokeWidth = 32;
   const circumference = 2 * Math.PI * radius;
-  const rowsPerColumn = 7;
-  const columnCount = Math.max(1, Math.ceil(entries.length / rowsPerColumn));
+  const columnCount = Math.max(1, Math.min(4, Math.ceil(entries.length / 7)));
+  const rowsPerColumn = Math.max(1, Math.ceil(entries.length / columnCount));
   const chartWidth = Math.max(780, 345 + (columnCount - 1) * 220 + 215);
+  const chartHeight = Math.max(320, 67 + (rowsPerColumn - 1) * 36 + 30);
+  const donutCenterY = chartHeight / 2;
   let offset = 0;
 
   const segments = entries.map((entry, index) => {
@@ -251,7 +253,7 @@ export function renderChart(entries, repoCount, username) {
     const color = pickColor(entry.name, index);
     const gap = 2;
     const segmentLength = Math.max(length - gap, 0);
-    const segment = `<circle cx="180" cy="180" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${segmentLength.toFixed(3)} ${(circumference - segmentLength).toFixed(3)}" stroke-dashoffset="-${offset.toFixed(3)}" />`;
+    const segment = `<circle cx="180" cy="${donutCenterY}" r="${radius}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-dasharray="${segmentLength.toFixed(3)} ${(circumference - segmentLength).toFixed(3)}" stroke-dashoffset="-${offset.toFixed(3)}" />`;
     offset += length;
     return segment;
   }).join("\n    ");
@@ -267,7 +269,7 @@ export function renderChart(entries, repoCount, username) {
     return `<g transform="translate(${x} ${y})"><circle cx="7" cy="-5" r="6" fill="${color}" /><text x="22" class="language">${escapeXml(entry.name)}</text><text x="22" y="17" class="percentage">${percentageText} · ${formatBytes(entry.bytes)}</text></g>`;
   }).join("\n    ");
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${chartWidth}" height="320" viewBox="0 0 ${chartWidth} 320" role="img" aria-labelledby="title description">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${chartWidth}" height="${chartHeight}" viewBox="0 0 ${chartWidth} ${chartHeight}" role="img" aria-labelledby="title description">
   <title id="title">Languages across repositories owned or contributed to by ${escapeXml(username)}</title>
   <desc id="description">Donut chart of language composition across ${repoCount} owned or contributed ${repoCount === 1 ? "repository" : "repositories"}, including private repositories permitted by the token, measured in bytes of code.</desc>
   <style>
@@ -284,13 +286,13 @@ export function renderChart(entries, repoCount, username) {
     }
   </style>
   <text x="24" y="32" class="title">Coding Profile · Owned &amp; Contributed Repository Languages</text>
-  <g transform="rotate(-90 180 180)">
-    <circle class="track" cx="180" cy="180" r="${radius}" fill="none" stroke-width="${strokeWidth}" />
+  <g transform="rotate(-90 180 ${donutCenterY})">
+    <circle class="track" cx="180" cy="${donutCenterY}" r="${radius}" fill="none" stroke-width="${strokeWidth}" />
     ${segments}
   </g>
-  <text x="180" y="174" text-anchor="middle" class="count">${entries.length}</text>
-  <text x="180" y="196" text-anchor="middle" class="percentage">languages</text>
-  <text x="180" y="216" text-anchor="middle" class="percentage">${repoCount} ${repoCount === 1 ? "repository" : "repositories"}</text>
+  <text x="180" y="${donutCenterY - 6}" text-anchor="middle" class="count">${entries.length}</text>
+  <text x="180" y="${donutCenterY + 16}" text-anchor="middle" class="percentage">languages</text>
+  <text x="180" y="${donutCenterY + 36}" text-anchor="middle" class="percentage">${repoCount} ${repoCount === 1 ? "repository" : "repositories"}</text>
   ${legend}
 </svg>
 `;
