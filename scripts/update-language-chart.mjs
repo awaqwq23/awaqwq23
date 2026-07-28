@@ -8,6 +8,10 @@ const configuredUsername = process.env.GITHUB_USERNAME || process.env.GITHUB_REP
 const token = process.env.LANGUAGE_STATS_TOKEN || process.env.GITHUB_TOKEN;
 const requireAuthenticatedRepos = process.env.REQUIRE_AUTHENTICATED_REPOS === "true";
 const excludeForks = process.env.EXCLUDE_FORKS === "true";
+const configuredPreviousUsernames = (process.env.GITHUB_PREVIOUS_USERNAMES || "")
+  .split(/[\s,]+/)
+  .map((value) => value.trim())
+  .filter(Boolean);
 const apiBaseUrl = process.env.GITHUB_API_URL || "https://api.github.com";
 const outputPath = "assets/language-stats.svg";
 
@@ -55,17 +59,57 @@ async function fetchAllPages(request, path) {
   return results;
 }
 
+async function findContributedRepositories(request, usernames) {
+  const repositories = [];
+  for (const username of usernames) {
+    console.log(`→ Searching commits attributed to ${username}…`);
+    for (let page = 1; page <= 10; page += 1) {
+      const params = new URLSearchParams({
+        q: `author:${username}`,
+        sort: "author-date",
+        order: "desc",
+        per_page: "100",
+        page: String(page),
+      });
+      const result = await request(`/search/commits?${params}`);
+      if (!Array.isArray(result?.items)) {
+        throw new TypeError(`Expected commit search results for ${username}`);
+      }
+      for (const commit of result.items) {
+        if (commit.repository?.full_name) repositories.push(commit.repository);
+      }
+      if (result.items.length < 100) break;
+    }
+  }
+  return repositories;
+}
+
+function mergeRepositories(...groups) {
+  const repositories = new Map();
+  for (const group of groups) {
+    for (const repository of group) {
+      const key = repository.id
+        ? `id:${repository.id}`
+        : `name:${repository.full_name.toLowerCase()}`;
+      repositories.set(key, repository);
+    }
+  }
+  return [...repositories.values()];
+}
+
 /**
- * 返回认证用户能访问的全部仓库。
+ * 返回认证用户能访问或曾经贡献过的全部仓库。
  *
  * 有 token 时，/user/repos 会覆盖自己拥有、作为协作者加入、以及通过组织成员身份
- * 可访问的 public / private 仓库。无 token 时仅保留公开 owner 仓库作为本地降级。
+ * 可访问的 public / private 仓库；commit search 会补上曾经参与、但当前不在仓库
+ * 列表中的项目。无 token 时仅保留公开 owner 仓库作为本地降级。
  */
 export async function discoverAllRepos({
   request = github,
   hasToken = Boolean(token),
   username = configuredUsername,
   requireAuthenticated = requireAuthenticatedRepos,
+  previousUsernames = configuredPreviousUsernames,
 } = {}) {
   if (!hasToken) {
     if (requireAuthenticated) {
@@ -103,7 +147,13 @@ export async function discoverAllRepos({
     sort: "full_name",
     direction: "asc",
   });
-  const repos = await fetchAllPages(request, `/user/repos?${params}`);
+  const accessibleRepos = await fetchAllPages(request, `/user/repos?${params}`);
+  const identities = [...new Set([authenticatedUsername, ...previousUsernames])];
+  const contributedRepos = await findContributedRepositories(request, identities);
+  const repos = mergeRepositories(accessibleRepos, contributedRepos);
+  console.log(
+    `→ ${accessibleRepos.length} accessible + ${contributedRepos.length} contribution matches = ${repos.length} unique repositories`,
+  );
   return { username: authenticatedUsername, repos };
 }
 
@@ -151,8 +201,8 @@ export function renderChart(entries, repoCount, username) {
   }).join("\n    ");
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${chartWidth}" height="320" viewBox="0 0 ${chartWidth} 320" role="img" aria-labelledby="title description">
-  <title id="title">Languages across repositories accessible to ${escapeXml(username)}</title>
-  <desc id="description">Donut chart of language composition across ${repoCount} accessible ${repoCount === 1 ? "repository" : "repositories"}, including private repositories permitted by the token, measured in bytes of code.</desc>
+  <title id="title">Languages across repositories owned or contributed to by ${escapeXml(username)}</title>
+  <desc id="description">Donut chart of language composition across ${repoCount} owned or contributed ${repoCount === 1 ? "repository" : "repositories"}, including private repositories permitted by the token, measured in bytes of code.</desc>
   <style>
     text { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; fill: #1f2328; }
     .title { font-size: 18px; font-weight: 600; fill: #1f2328; }
@@ -166,13 +216,14 @@ export function renderChart(entries, repoCount, username) {
       .track { stroke: #30363d; }
     }
   </style>
-  <text x="24" y="32" class="title">Coding Profile · All Accessible Repository Languages</text>
+  <text x="24" y="32" class="title">Coding Profile · Owned &amp; Contributed Repository Languages</text>
   <g transform="rotate(-90 180 180)">
     <circle class="track" cx="180" cy="180" r="${radius}" fill="none" stroke-width="${strokeWidth}" />
     ${segments}
   </g>
   <text x="180" y="174" text-anchor="middle" class="count">${entries.length}</text>
   <text x="180" y="196" text-anchor="middle" class="percentage">languages</text>
+  <text x="180" y="216" text-anchor="middle" class="percentage">${repoCount} ${repoCount === 1 ? "repository" : "repositories"}</text>
   ${legend}
 </svg>
 `;

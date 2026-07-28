@@ -2,6 +2,12 @@ name: Update language chart
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/update-language-chart.yml"
+      - "scripts/update-language-chart.mjs"
   schedule:
     - cron: "23 3 * * *"
 
@@ -25,6 +31,7 @@ jobs:
           # only access this workflow's repository.
           LANGUAGE_STATS_TOKEN: ${{ secrets.LANGUAGE_STATS_TOKEN }}
           GITHUB_USERNAME: ${{ github.repository_owner }}
+          GITHUB_PREVIOUS_USERNAMES: "xiaoben520"
           REQUIRE_AUTHENTICATED_REPOS: "true"
 
       - name: Commit updated chart
