@@ -8,10 +8,6 @@ const configuredUsername = process.env.GITHUB_USERNAME || process.env.GITHUB_REP
 const token = process.env.LANGUAGE_STATS_TOKEN || process.env.GITHUB_TOKEN;
 const requireAuthenticatedRepos = process.env.REQUIRE_AUTHENTICATED_REPOS === "true";
 const excludeForks = process.env.EXCLUDE_FORKS === "true";
-const configuredPreviousUsernames = (process.env.GITHUB_PREVIOUS_USERNAMES || "")
-  .split(/[\s,]+/)
-  .map((value) => value.trim())
-  .filter(Boolean);
 const apiBaseUrl = process.env.GITHUB_API_URL || "https://api.github.com";
 const outputPath = "assets/language-stats.svg";
 
@@ -45,6 +41,30 @@ async function github(path) {
   return response.json();
 }
 
+async function githubGraphql(query, variables) {
+  const headers = {
+    Accept: "application/vnd.github+json",
+    "Content-Type": "application/json",
+    "User-Agent": `${configuredUsername || "github-user"}-profile-language-chart`,
+    "X-GitHub-Api-Version": "2022-11-28",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${apiBaseUrl}/graphql`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify({ query, variables }),
+  });
+  const result = await response.json();
+  if (!response.ok) {
+    throw new Error(`GitHub GraphQL ${response.status}: ${JSON.stringify(result)}`);
+  }
+  if (result.errors?.length) {
+    throw new Error(`GitHub GraphQL errors: ${JSON.stringify(result.errors)}`);
+  }
+  return result.data;
+}
+
 async function fetchAllPages(request, path) {
   const results = [];
   for (let page = 1; ; page += 1) {
@@ -59,26 +79,71 @@ async function fetchAllPages(request, path) {
   return results;
 }
 
-async function findContributedRepositories(request, usernames) {
+function yearlyContributionWindows(createdAt, now) {
+  const accountCreatedAt = new Date(createdAt);
+  const endDate = new Date(now);
+  if (Number.isNaN(accountCreatedAt.getTime()) || Number.isNaN(endDate.getTime())) {
+    throw new TypeError("GitHub returned an invalid account creation date.");
+  }
+
+  const windows = [];
+  for (
+    let year = accountCreatedAt.getUTCFullYear();
+    year <= endDate.getUTCFullYear();
+    year += 1
+  ) {
+    const yearStart = new Date(Date.UTC(year, 0, 1));
+    const yearEnd = new Date(Date.UTC(year + 1, 0, 1) - 1);
+    const from = yearStart < accountCreatedAt ? accountCreatedAt : yearStart;
+    const to = yearEnd > endDate ? endDate : yearEnd;
+    if (from <= to) windows.push({ from: from.toISOString(), to: to.toISOString() });
+  }
+  return windows;
+}
+
+async function findContributedRepositories(request, createdAt, now) {
+  const query = `
+    query ContributionRepositories($from: DateTime!, $to: DateTime!) {
+      viewer {
+        contributionsCollection(from: $from, to: $to) {
+          totalRepositoriesWithContributedCommits
+          commitContributionsByRepository(maxRepositories: 100) {
+            repository {
+              id
+              nameWithOwner
+              isFork
+              isPrivate
+            }
+          }
+        }
+      }
+    }
+  `;
   const repositories = [];
-  for (const username of usernames) {
-    console.log(`→ Searching commits attributed to ${username}…`);
-    for (let page = 1; page <= 10; page += 1) {
-      const params = new URLSearchParams({
-        q: `author:${username}`,
-        sort: "author-date",
-        order: "desc",
-        per_page: "100",
-        page: String(page),
+  for (const window of yearlyContributionWindows(createdAt, now)) {
+    console.log(`→ Fetching contribution repositories for ${window.from.slice(0, 4)}…`);
+    const data = await request(query, window);
+    const collection = data?.viewer?.contributionsCollection;
+    if (!collection || !Array.isArray(collection.commitContributionsByRepository)) {
+      throw new TypeError("Expected a GitHub contribution collection.");
+    }
+    if (
+      collection.totalRepositoriesWithContributedCommits
+      > collection.commitContributionsByRepository.length
+    ) {
+      console.warn(
+        `⚠ GitHub limited ${window.from.slice(0, 4)} contribution details to 100 repositories.`,
+      );
+    }
+    for (const contribution of collection.commitContributionsByRepository) {
+      const repository = contribution.repository;
+      if (!repository?.nameWithOwner) continue;
+      repositories.push({
+        id: repository.id,
+        full_name: repository.nameWithOwner,
+        fork: repository.isFork,
+        private: repository.isPrivate,
       });
-      const result = await request(`/search/commits?${params}`);
-      if (!Array.isArray(result?.items)) {
-        throw new TypeError(`Expected commit search results for ${username}`);
-      }
-      for (const commit of result.items) {
-        if (commit.repository?.full_name) repositories.push(commit.repository);
-      }
-      if (result.items.length < 100) break;
     }
   }
   return repositories;
@@ -88,9 +153,7 @@ function mergeRepositories(...groups) {
   const repositories = new Map();
   for (const group of groups) {
     for (const repository of group) {
-      const key = repository.id
-        ? `id:${repository.id}`
-        : `name:${repository.full_name.toLowerCase()}`;
+      const key = repository.full_name.toLowerCase();
       repositories.set(key, repository);
     }
   }
@@ -109,7 +172,8 @@ export async function discoverAllRepos({
   hasToken = Boolean(token),
   username = configuredUsername,
   requireAuthenticated = requireAuthenticatedRepos,
-  previousUsernames = configuredPreviousUsernames,
+  graphqlRequest = githubGraphql,
+  now = new Date(),
 } = {}) {
   if (!hasToken) {
     if (requireAuthenticated) {
@@ -148,8 +212,11 @@ export async function discoverAllRepos({
     direction: "asc",
   });
   const accessibleRepos = await fetchAllPages(request, `/user/repos?${params}`);
-  const identities = [...new Set([authenticatedUsername, ...previousUsernames])];
-  const contributedRepos = await findContributedRepositories(request, identities);
+  const contributedRepos = await findContributedRepositories(
+    graphqlRequest,
+    viewer.created_at,
+    now,
+  );
   const repos = mergeRepositories(accessibleRepos, contributedRepos);
   console.log(
     `→ ${accessibleRepos.length} accessible + ${contributedRepos.length} contribution matches = ${repos.length} unique repositories`,
