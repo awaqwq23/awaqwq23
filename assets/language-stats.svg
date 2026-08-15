@@ -17,32 +17,32 @@
   <text x="24" y="32" class="title">Coding Profile · Personally Contributed Languages</text>
   <g transform="rotate(-90 180 160)">
     <circle class="track" cx="180" cy="160" r="95" fill="none" stroke-width="32" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#f1e05a" stroke-width="32" stroke-dasharray="215.587 381.316" stroke-dashoffset="-0.000" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#178600" stroke-width="32" stroke-dasharray="157.814 439.089" stroke-dashoffset="-217.587" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#663399" stroke-width="32" stroke-dasharray="101.006 495.897" stroke-dashoffset="-377.401" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#e34c26" stroke-width="32" stroke-dasharray="38.640 558.263" stroke-dashoffset="-480.407" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#3572A5" stroke-width="32" stroke-dasharray="25.421 571.482" stroke-dashoffset="-521.046" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#0C54C2" stroke-width="32" stroke-dasharray="25.082 571.821" stroke-dashoffset="-548.467" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#f34b7d" stroke-width="32" stroke-dasharray="8.541 588.361" stroke-dashoffset="-575.549" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#012456" stroke-width="32" stroke-dasharray="5.830 591.073" stroke-dashoffset="-586.090" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#555555" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-593.920" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#3178c6" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-595.801" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#DA3434" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-596.564" />
-    <circle cx="180" cy="160" r="95" fill="none" stroke="#41b883" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-596.750" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#f1e05a" stroke-width="32" stroke-dasharray="217.303 379.599" stroke-dashoffset="-0.000" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#178600" stroke-width="32" stroke-dasharray="153.866 443.037" stroke-dashoffset="-219.303" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#663399" stroke-width="32" stroke-dasharray="105.040 491.862" stroke-dashoffset="-375.169" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#e34c26" stroke-width="32" stroke-dasharray="38.710 558.192" stroke-dashoffset="-482.210" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#3572A5" stroke-width="32" stroke-dasharray="24.744 572.159" stroke-dashoffset="-522.920" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#0C54C2" stroke-width="32" stroke-dasharray="24.413 572.490" stroke-dashoffset="-549.663" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#f34b7d" stroke-width="32" stroke-dasharray="8.281 588.622" stroke-dashoffset="-576.076" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#012456" stroke-width="32" stroke-dasharray="5.636 591.266" stroke-dashoffset="-586.357" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#555555" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-593.994" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#3178c6" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-595.828" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#DA3434" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-596.572" />
+    <circle cx="180" cy="160" r="95" fill="none" stroke="#41b883" stroke-width="32" stroke-dasharray="0.000 596.903" stroke-dashoffset="-596.754" />
   </g>
   <text x="180" y="154" text-anchor="middle" class="count">12</text>
   <text x="180" y="176" text-anchor="middle" class="percentage">languages</text>
   <text x="180" y="196" text-anchor="middle" class="percentage">7 repositories</text>
-  <g transform="translate(345 67)"><circle cx="7" cy="-5" r="6" fill="#f1e05a" /><text x="22" class="language">JavaScript</text><text x="22" y="17" class="percentage">36.5% · 12,839 lines</text></g>
-    <g transform="translate(345 103)"><circle cx="7" cy="-5" r="6" fill="#178600" /><text x="22" class="language">C#</text><text x="22" y="17" class="percentage">26.8% · 9,430 lines</text></g>
-    <g transform="translate(345 139)"><circle cx="7" cy="-5" r="6" fill="#663399" /><text x="22" class="language">CSS</text><text x="22" y="17" class="percentage">17.3% · 6,078 lines</text></g>
-    <g transform="translate(345 175)"><circle cx="7" cy="-5" r="6" fill="#e34c26" /><text x="22" class="language">HTML</text><text x="22" y="17" class="percentage">6.8% · 2,398 lines</text></g>
-    <g transform="translate(345 211)"><circle cx="7" cy="-5" r="6" fill="#3572A5" /><text x="22" class="language">Python</text><text x="22" y="17" class="percentage">4.6% · 1,618 lines</text></g>
-    <g transform="translate(565 67)"><circle cx="7" cy="-5" r="6" fill="#0C54C2" /><text x="22" class="language">XAML</text><text x="22" y="17" class="percentage">4.5% · 1,598 lines</text></g>
-    <g transform="translate(565 103)"><circle cx="7" cy="-5" r="6" fill="#f34b7d" /><text x="22" class="language">C++</text><text x="22" y="17" class="percentage">1.8% · 622 lines</text></g>
+  <g transform="translate(345 67)"><circle cx="7" cy="-5" r="6" fill="#f1e05a" /><text x="22" class="language">JavaScript</text><text x="22" y="17" class="percentage">36.7% · 13,268 lines</text></g>
+    <g transform="translate(345 103)"><circle cx="7" cy="-5" r="6" fill="#178600" /><text x="22" class="language">C#</text><text x="22" y="17" class="percentage">26.1% · 9,430 lines</text></g>
+    <g transform="translate(345 139)"><circle cx="7" cy="-5" r="6" fill="#663399" /><text x="22" class="language">CSS</text><text x="22" y="17" class="percentage">17.9% · 6,476 lines</text></g>
+    <g transform="translate(345 175)"><circle cx="7" cy="-5" r="6" fill="#e34c26" /><text x="22" class="language">HTML</text><text x="22" y="17" class="percentage">6.8% · 2,463 lines</text></g>
+    <g transform="translate(345 211)"><circle cx="7" cy="-5" r="6" fill="#3572A5" /><text x="22" class="language">Python</text><text x="22" y="17" class="percentage">4.5% · 1,618 lines</text></g>
+    <g transform="translate(565 67)"><circle cx="7" cy="-5" r="6" fill="#0C54C2" /><text x="22" class="language">XAML</text><text x="22" y="17" class="percentage">4.4% · 1,598 lines</text></g>
+    <g transform="translate(565 103)"><circle cx="7" cy="-5" r="6" fill="#f34b7d" /><text x="22" class="language">C++</text><text x="22" y="17" class="percentage">1.7% · 622 lines</text></g>
     <g transform="translate(565 139)"><circle cx="7" cy="-5" r="6" fill="#012456" /><text x="22" class="language">PowerShell</text><text x="22" y="17" class="percentage">1.3% · 462 lines</text></g>
-    <g transform="translate(565 175)"><circle cx="7" cy="-5" r="6" fill="#555555" /><text x="22" class="language">C</text><text x="22" y="17" class="percentage">0.32% · 111 lines</text></g>
-    <g transform="translate(565 211)"><circle cx="7" cy="-5" r="6" fill="#3178c6" /><text x="22" class="language">TypeScript</text><text x="22" y="17" class="percentage">0.13% · 45 lines</text></g>
+    <g transform="translate(565 175)"><circle cx="7" cy="-5" r="6" fill="#555555" /><text x="22" class="language">C</text><text x="22" y="17" class="percentage">0.31% · 111 lines</text></g>
+    <g transform="translate(565 211)"><circle cx="7" cy="-5" r="6" fill="#3178c6" /><text x="22" class="language">TypeScript</text><text x="22" y="17" class="percentage">0.12% · 45 lines</text></g>
     <g transform="translate(785 67)"><circle cx="7" cy="-5" r="6" fill="#DA3434" /><text x="22" class="language">CMake</text><text x="22" y="17" class="percentage">0.03% · 11 lines</text></g>
-    <g transform="translate(785 103)"><circle cx="7" cy="-5" r="6" fill="#41b883" /><text x="22" class="language">Vue</text><text x="22" y="17" class="percentage">0.03% · 9 lines</text></g>
+    <g transform="translate(785 103)"><circle cx="7" cy="-5" r="6" fill="#41b883" /><text x="22" class="language">Vue</text><text x="22" y="17" class="percentage">0.02% · 9 lines</text></g>
 </svg>
