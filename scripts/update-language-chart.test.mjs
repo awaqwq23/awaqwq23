@@ -91,6 +91,28 @@ test("refuses a public-only fallback when authenticated statistics are required"
   );
 });
 
+test("falls back to public repositories when the optional token is invalid", async () => {
+  const result = await discoverAllRepos({
+    request: async (path) => {
+      if (path === "/user") {
+        const error = new Error("Bad credentials");
+        error.status = 401;
+        throw error;
+      }
+      if (path.startsWith("/users/example-user/repos?")) {
+        return [{ full_name: "example-user/public-app" }];
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    },
+    hasToken: true,
+    username: "example-user",
+    requireAuthenticated: false,
+  });
+
+  assert.equal(result.username, "example-user");
+  assert.deepEqual(result.repos, [{ full_name: "example-user/public-app" }]);
+});
+
 test("maps source filenames to languages and ignores generated dependency paths", () => {
   assert.equal(languageForPath("src/server.ts"), "TypeScript");
   assert.equal(languageForPath("native/widget.cpp"), "C++");

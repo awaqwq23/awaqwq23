@@ -87,13 +87,13 @@ export function languageForPath(filename) {
   return extensionLanguages.get(basename.slice(dot)) || null;
 }
 
-async function github(path) {
+async function github(path, { authenticated = true } = {}) {
   const headers = {
     Accept: "application/vnd.github+json",
     "User-Agent": `${configuredUsername || "github-user"}-profile-language-chart`,
     "X-GitHub-Api-Version": "2022-11-28",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  if (authenticated && token) headers.Authorization = `Bearer ${token}`;
 
   const response = await fetch(`${apiBaseUrl}${path}`, { headers });
   if (!response.ok) {
@@ -232,33 +232,53 @@ function mergeRepositories(...groups) {
  */
 export async function discoverAllRepos({
   request = github,
+  publicRequest = request === github
+    ? (path) => github(path, { authenticated: false })
+    : request,
   hasToken = Boolean(token),
   username = configuredUsername,
   requireAuthenticated = requireAuthenticatedRepos,
   graphqlRequest = githubGraphql,
   now = new Date(),
 } = {}) {
+  const discoverPublicRepos = async () => {
+    if (!username) {
+      throw new Error("Set GITHUB_USERNAME or GITHUB_REPOSITORY_OWNER.");
+    }
+
+    console.warn("⚠ Only public repositories owned by the configured user will be counted.");
+    const repos = await fetchAllPages(
+      publicRequest,
+      `/users/${encodeURIComponent(username)}/repos?type=owner&sort=full_name`,
+    );
+    return { username, repos };
+  };
+
   if (!hasToken) {
     if (requireAuthenticated) {
       throw new Error(
         "LANGUAGE_STATS_TOKEN is required. Add a GitHub Actions secret with access to all repositories you want counted.",
       );
     }
-    if (!username) {
-      throw new Error("Set GITHUB_USERNAME or GITHUB_REPOSITORY_OWNER.");
-    }
-
-    console.warn("⚠ No token — only public repositories owned by the configured user will be counted.");
-    const repos = await fetchAllPages(
-      request,
-      `/users/${encodeURIComponent(username)}/repos?type=owner&sort=full_name`,
-    );
-    return { username, repos };
+    return discoverPublicRepos();
   }
 
-  const viewer = await request("/user");
+  let viewer;
+  try {
+    viewer = await request("/user");
+  } catch (error) {
+    if (!requireAuthenticated && (error?.status === 401 || error?.status === 403)) {
+      console.warn("⚠ LANGUAGE_STATS_TOKEN is unavailable; falling back to public repositories.");
+      return discoverPublicRepos();
+    }
+    throw error;
+  }
   const authenticatedUsername = viewer?.login;
   if (!authenticatedUsername) {
+    if (!requireAuthenticated) {
+      console.warn("⚠ LANGUAGE_STATS_TOKEN did not identify a user; falling back to public repositories.");
+      return discoverPublicRepos();
+    }
     throw new Error("The configured token did not identify an authenticated GitHub user.");
   }
   if (username && authenticatedUsername.toLowerCase() !== username.toLowerCase()) {
