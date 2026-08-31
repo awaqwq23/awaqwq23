@@ -489,26 +489,31 @@ export function renderChart(entries, repoCount, username) {
 }
 
 export async function main() {
-  const discovery = await discoverAllRepos();
-  const stats = await collectAuthoredLanguageStats(
-    discovery.repos,
-    discovery.username,
-  );
+  try {
+    const discovery = await discoverAllRepos();
+    const stats = await collectAuthoredLanguageStats(
+      discovery.repos,
+      discovery.username,
+    );
 
-  await mkdir("assets", { recursive: true });
-  await writeFile(
-    outputPath,
-    renderChart(stats.entries, stats.repoCount, discovery.username),
-    "utf8",
-  );
+    await mkdir("assets", { recursive: true });
+    await writeFile(
+      outputPath,
+      renderChart(stats.entries, stats.repoCount, discovery.username),
+      "utf8",
+    );
 
-  const aggregateLines = totalLines(stats.entries);
-  console.log(
-    `✓ ${outputPath}  ·  ${stats.repoCount} repos  ·  ${stats.commitCount} commits  ·  ${stats.entries.length} languages`,
-  );
-  for (const entry of collapseEntries(stats.entries)) {
-    const percentage = aggregateLines ? (entry.lines / aggregateLines) * 100 : 0;
-    console.log(`  ${entry.name}: ${formatLines(entry.lines)} (${percentage.toFixed(1)}%)`);
+    const aggregateLines = totalLines(stats.entries);
+    console.log(
+      `✓ ${outputPath}  ·  ${stats.repoCount} repos  ·  ${stats.commitCount} commits  ·  ${stats.entries.length} languages`,
+    );
+    for (const entry of collapseEntries(stats.entries)) {
+      const percentage = aggregateLines ? (entry.lines / aggregateLines) * 100 : 0;
+      console.log(`  ${entry.name}: ${formatLines(entry.lines)} (${percentage.toFixed(1)}%)`);
+    }
+  } catch (error) {
+    console.warn(`⚠ Unable to update ${outputPath}; keeping the existing chart.`);
+    console.warn(error instanceof Error ? error.message : error);
   }
 }
 
